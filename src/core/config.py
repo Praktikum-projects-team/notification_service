@@ -23,11 +23,11 @@ class AuthConfig(BaseSettings):
 
 
 class PostgresConfig(BaseSettings):
-    host: str = Field(..., env='PG_HOST')
-    port: int = Field(..., env='PG_PORT')
-    user: str = Field(..., env='PG_USER')
-    password: str = Field(..., env='PG_PASSWORD')
-    name: str = Field(..., env='PG_NAME')
+    host: str = Field(..., env='POSTGRES_HOST')
+    port: int = Field(..., env='POSTGRES_PORT')
+    user: str = Field(..., env='POSTGRES_USER')
+    password: str = Field(..., env='POSTGRES_PASSWORD')
+    name: str = Field(..., env='POSTGRES_NAME')
     url: str = f'postgresql://{user}:{password}@{host}:{port}/{name}'
     url_for_alembic: str = f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{name}'
 

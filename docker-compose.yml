@@ -48,7 +48,7 @@ services:
       - $HOME/postgresql/notification_data:/var/lib/postgresql/notification_api_data
     restart: always
     ports:
-      - "5433:5433"
+      - "5433:5432"
     networks:
       - cinema
 
