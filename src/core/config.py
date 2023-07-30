@@ -27,7 +27,7 @@ class PostgresConfig(BaseSettings):
     port: int = Field(..., env='POSTGRES_PORT')
     user: str = Field(..., env='POSTGRES_USER')
     password: str = Field(..., env='POSTGRES_PASSWORD')
-    name: str = Field(..., env='POSTGRES_NAME')
+    name: str = Field(..., env='POSTGRES_DB')
     url: str = f'postgresql://{user}:{password}@{host}:{port}/{name}'
     url_for_alembic: str = f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{name}'
 
