@@ -28,8 +28,14 @@ class PostgresConfig(BaseSettings):
     user: str = Field(..., env='POSTGRES_USER')
     password: str = Field(..., env='POSTGRES_PASSWORD')
     name: str = Field(..., env='POSTGRES_DB')
-    url: str = f'postgresql://{user}:{password}@{host}:{port}/{name}'
-    url_for_alembic: str = f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{name}'
+
+    @property
+    def url_sync(self):
+        return f'postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}'
+
+    @property
+    def url_async(self):
+        return f'postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}'
 
 
 app_config = AppConfig()
