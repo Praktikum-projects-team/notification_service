@@ -1,0 +1,80 @@
+@startuml
+skinparam maxMessageSize 200
+skinparam sequence {
+ActorFontColor Blue
+ActorFontSize 14
+}
+
+<style>
+componentDiagram {
+BackGroundColor palegreen
+LineThickness 2
+LineColor grey
+}
+</style>
+
+actor пользователь as user  #yellow;line:blue;line.bold;text:blue
+actor админ as admin  #yellow;line:blue;line.bold;text:blue
+
+component "nginx_5" as nginx_5 #palegreen;line:black;
+component "nginx_4" as nginx_4
+component "nginx_3" as nginx_3
+component "nginx_2" as nginx_2
+component "nginx_1" as nginx_1
+
+component "admin_panel" as admin_panel #yellow
+component "etl_movies" as etl_movies
+component "movies_api" as movies_api #yellow
+component "auth_api" as auth_api #yellow
+component "ugc_api" as ugc_api #yellow;line:grey;
+component "etl_events" as etl_events
+component "ugc_api_users_action" as ugc_api_users_action #yellow
+component "notification_api" as notification_api #yellow;line:black;
+component "worker_to_send" as worker_to_send #palegreen;line:black;
+
+queue "rabbit_mq" as rabbit_mq #palegreen;line:black;
+
+database postgres_user #5cdb7e
+database postgres_admin #5cdb7e
+database postgres_notification #5cdb7e;line:black;
+database redis_1 #5cdb7e
+database redis_2 #5cdb7e
+database kafka #5cdb7e;line:grey;
+database clickhouse #5cdb7e
+database elastic #5cdb7e
+database mongo #5cdb7e
+
+user ..> nginx_1: <font color=blue>смотрит кино</font>
+user ..> nginx_2: <font color=blue>входит на сервис</font> 
+user ..> nginx_3: <font color=blue>отправка информации о просмотрах фильма</font>
+user ..> nginx_4: <font color=blue>совершает действия</font>
+
+nginx_1 ..> movies_api
+movies_api -> elastic: информация о фильмах
+movies_api --> redis_1: кэш информации о фильмах, жанрах, персонах
+movies_api --> auth_api: проверка доступности
+etl_movies --> elastic
+
+nginx_2 ..> auth_api
+auth_api -> postgres_user: данные о пользователях
+auth_api --> redis_2: токены и количество запросов
+
+nginx_3 ..> ugc_api
+ugc_api --> kafka: события\n(просмотры\nфильмов)
+kafka --> etl_events: переливка с помощью движка kafka table engine
+etl_events --> clickhouse
+
+nginx_4 ..> ugc_api_users_action
+ugc_api_users_action --> mongo: действия\nпользователя\n(закладки\nлайки\nотзывы)
+
+nginx_5 ..[#black]> notification_api
+notification_api --[#black]> postgres_notification: уведомления для пользователей
+postgres_notification --[#black]> rabbit_mq
+rabbit_mq -[#black]> worker_to_send: рассылка уведомлений пользователям
+worker_to_send --[#black]> user
+
+admin ..> admin_panel : <font color=blue>добавляет фильмы</font>
+admin_panel -> postgres_admin
+postgres_admin --> etl_movies: переливка данных в индекс для полнотекстового поиска
+
+@enduml
