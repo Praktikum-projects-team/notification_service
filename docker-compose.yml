@@ -46,6 +46,11 @@ services:
       - envs/notification/.env
     volumes:
       - $HOME/postgresql/notification_data:/var/lib/postgresql/notification_api_data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U app -d notification_db" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
     restart: always
     ports:
       - "5433:5432"
@@ -59,9 +64,9 @@ services:
       - envs/notification/.env
     volumes:
       - $HOME/postgresql/notification_data:/var/lib/postgresql/notification_api_data
-    command: bash -c "sleep 10 && alembic upgrade head"
     depends_on:
-      - notification_postgres
+      notification_postgres:
+        condition: service_healthy
     networks:
       - cinema
 
