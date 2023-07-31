@@ -57,6 +57,9 @@ services:
     build: .
     env_file:
       - envs/notification/.env
+    volumes:
+      - $HOME/postgresql/notification_data:/var/lib/postgresql/notification_api_data
+    command: bash -c "sleep 10 && alembic upgrade head"
     depends_on:
       - notification_postgres
     networks:
