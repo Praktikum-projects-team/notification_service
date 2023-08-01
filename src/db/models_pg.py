@@ -1,3 +1,5 @@
+import uuid
+
 from sqlalchemy import DateTime, Column, String, Boolean, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
@@ -10,14 +12,14 @@ Base = declarative_base()
 
 class Event(Base):
     __tablename__ = 'events'
-    id = Column(UUID(as_uuid=True), primary_key=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     description = Column(String)
     is_unsubscribeable = Column(Boolean)
 
 
 class Template(Base):
     __tablename__ = 'templates'
-    id = Column(UUID(as_uuid=True), primary_key=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     description = Column(String)
     template = Column(String)
 
@@ -39,7 +41,7 @@ class UserUnsubscribed(Base):
 
 class EventScheduled(Base):
     __tablename__ = 'events_scheduled'
-    id = Column(UUID(as_uuid=True), primary_key=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     event_id = Column(UUID(as_uuid=True), ForeignKey('events.id'))
     cron_string = Column(String)
 
