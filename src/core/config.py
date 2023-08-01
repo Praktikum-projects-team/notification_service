@@ -38,6 +38,6 @@ class PostgresConfig(BaseSettings):
         return f'postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}'
 
 
-app_config = AppConfig()
-auth_config = AuthConfig()
-pg_config = PostgresConfig()
+app_config = AppConfig()  # type: ignore[call-arg]
+auth_config = AuthConfig()  # type: ignore[call-arg]
+pg_config = PostgresConfig()  # type: ignore[call-arg]
