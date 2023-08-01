@@ -31,7 +31,7 @@ class Template(Base):
 class NotificationTemplate(Base):
     __tablename__ = 'notification_templates'
     event_id = Column(UUID(as_uuid=True), ForeignKey('events.id'), primary_key=True)
-    channel = Column(Enum(Channel))
+    channel: Channel = Column(Enum(Channel))
     template_id = Column(UUID(as_uuid=True), ForeignKey('templates.id'))
     event = relationship('Event')
     template = relationship('Template')
@@ -40,7 +40,7 @@ class NotificationTemplate(Base):
 class UserUnsubscribed(Base):
     __tablename__ = 'users_unsubscribed'
     user_id = Column(UUID(as_uuid=True), primary_key=True)
-    channel = Column(Enum(Channel))
+    channel: Channel = Column(Enum(Channel))
 
 
 class EventScheduled(Base):
