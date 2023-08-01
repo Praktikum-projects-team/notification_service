@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import DateTime, Column, String, Boolean, Enum, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
@@ -5,7 +7,11 @@ from sqlalchemy.orm import relationship
 
 from db.models_data import Channel
 
-Base = declarative_base()
+if TYPE_CHECKING:
+    class Base:
+        pass
+else:
+    Base = declarative_base()
 
 
 class Event(Base):
