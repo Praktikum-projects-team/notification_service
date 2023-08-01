@@ -29,7 +29,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install wemake-python-styleguide==0.18.0 flake8-html mypy==1.4.1
         pip install -r requirements.txt
-        pip install -r etl_kafka_clickhouse/requirements.txt
 
     - name: Lint with wemake-python-styleguide
       run: |
@@ -46,13 +45,12 @@ jobs:
 
     - name: Check typing with mypy
       run: |
-        mypy etl_kafka_clickhouse
         mypy src
 
   notification:
       name: Telegram notification
       runs-on: ubuntu-latest
-#       needs: build
+      needs: build
       steps:
         - name: send telegram message on pr
           uses: appleboy/telegram-action@master
@@ -62,5 +60,4 @@ jobs:
             message: |
               Что там накодил(а) ${{ github.actor }}: 
               ${{ github.event.commits[0].message }} (https://github.com/${{ github.repository }}/commit/${{github.sha}})
-              Успех: ${{ success() }}      
               Репозиторий: ${{ github.repository }}
