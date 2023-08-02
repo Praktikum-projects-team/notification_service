@@ -6,7 +6,12 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import exc as orm_exc
 
 from core.config import pg_config
-from db.models_data import AllEventsResponse, EventCreate, EventResponse, EventScheduledCreate
+from db.models_data import (
+    AllEventsWithScheduledResp,
+    EventCreate,
+    EventResponse,
+    EventScheduledCreate
+)
 from db.models_pg import Event, EventScheduled
 
 async_engine = create_async_engine(pg_config.url_async)
@@ -57,7 +62,7 @@ async def insert_event_scheduled(event_scheduled_data: EventScheduledCreate, ses
         event_scheduled = EventScheduled(**event_scheduled_data.dict())
         session.add(event_scheduled)
         await session.commit()
-        session.refresh(event_scheduled)
+        await session.refresh(event_scheduled)
         return event_scheduled.id
 
     except Exception as e:
@@ -69,8 +74,26 @@ async def get_all_events(session):
     try:
         events = await session.execute(select(Event))
         all_events = events.scalars().all()
-        formatted_events = [event.__dict__ for event in all_events]
-        return formatted_events
+        formatted_events_all = list()
+
+        for event in all_events:
+            event_scheduled = await session.execute(
+                select(EventScheduled.cron_string)
+                .where(EventScheduled.event_id == event.id)
+                .limit(1)
+            )
+            cron_string = event_scheduled.scalar_one_or_none()
+            formatted_event = {
+                # **event.__dict__,
+                'id': str(event.id),
+                'description': event.description,
+                'is_unsubscribeable': event.is_unsubscribeable,
+                'cron_string': cron_string
+            }
+
+            formatted_events_all.append(formatted_event)
+
+        return AllEventsWithScheduledResp(events=formatted_events_all)
 
     except Exception as e:
         logging.error(e)

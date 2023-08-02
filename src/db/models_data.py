@@ -1,5 +1,8 @@
 from enum import Enum
+from typing import Any
 from uuid import UUID
+
+from pydantic import Field
 
 from core.base_model import OrjsonBaseModel
 
@@ -26,5 +29,13 @@ class EventResponse(OrjsonBaseModel):
     is_unsubscribeable: bool
 
 
-class AllEventsResponse(OrjsonBaseModel):
-    events: list[EventResponse]
+class EventWithScheduledResp(OrjsonBaseModel):
+    id: UUID
+    description: str
+    is_unsubscribeable: bool
+    cron_string: str
+
+
+class AllEventsWithScheduledResp(OrjsonBaseModel):
+    # events_all: list
+    events: list[EventWithScheduledResp] = Field(default_factory=list)

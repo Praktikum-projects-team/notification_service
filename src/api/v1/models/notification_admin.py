@@ -5,9 +5,10 @@ from pydantic import Field
 from core.base_model import OrjsonBaseModel
 
 
-class NotificationAdmin(OrjsonBaseModel):
+class AddNotificationAdmin(OrjsonBaseModel):
     description: str
     is_unsubscribeable: bool = Field(default=False)
+    cron_string: str
 
 
 class AddNotificationAdminResp(OrjsonBaseModel):
@@ -18,7 +19,8 @@ class NotificationAdminResp(OrjsonBaseModel):
     id: UUID
     description: str
     is_unsubscribeable: bool = Field(default=False)
+    cron_string: str
 
 
 class AllNotificationAdminResp(OrjsonBaseModel):
-    events: list[NotificationAdminResp]
+    events: list[NotificationAdminResp] = Field(default_factory=list)
