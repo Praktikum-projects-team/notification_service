@@ -7,9 +7,9 @@ from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import ORJSONResponse
 from httpx import RequestError
 
-from api.v1 import notification
-from core.logger import LOGGING
-from core.config import app_config
+from src.api.v1 import notification
+from src.core.logger import LOGGING
+from src.core.config import app_config
 
 from dotenv import load_dotenv
 
@@ -40,3 +40,4 @@ if __name__ == '__main__':
         log_config=LOGGING,
         log_level=logging.DEBUG if app_config.is_debug else logging.INFO,
     )
+
