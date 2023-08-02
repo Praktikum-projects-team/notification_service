@@ -24,3 +24,7 @@ class EventResponse(OrjsonBaseModel):
     id: UUID
     description: str
     is_unsubscribeable: bool
+
+
+class AllEventsResponse(OrjsonBaseModel):
+    events: list[EventResponse]

@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import exc as orm_exc
 
 from core.config import pg_config
-from db.models_data import EventCreate, EventResponse, EventScheduledCreate
+from db.models_data import AllEventsResponse, EventCreate, EventResponse, EventScheduledCreate
 from db.models_pg import Event, EventScheduled
 
 async_engine = create_async_engine(pg_config.url_async)
@@ -59,6 +59,18 @@ async def insert_event_scheduled(event_scheduled_data: EventScheduledCreate, ses
         await session.commit()
         session.refresh(event_scheduled)
         return event_scheduled.id
+
+    except Exception as e:
+        logging.error(e)
+        return None
+
+
+async def get_all_events(session):
+    try:
+        events = await session.execute(select(Event))
+        all_events = events.scalars().all()
+        formatted_events = [event.__dict__ for event in all_events]
+        return formatted_events
 
     except Exception as e:
         logging.error(e)
