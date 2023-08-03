@@ -1,8 +1,9 @@
 from functools import lru_cache
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from aio_pika import connect, Message
+from aio_pika import connect, Message, Connection, Channel, Exchange
 import orjson
+from typing import Optional
 
 from core.config import rm_config
 from db.postgres import get_db, get_event_by_id
@@ -13,13 +14,12 @@ class EventNotFound(Exception):
 
 
 class RabbitPublisher:
-    def __init__(self, session: AsyncSession = Depends(get_db)):
-        self.session = session
-        self.connection = None
-        self.channel = None
-        self.exchange = None
+    def __init__(self):
+        self.connection: Optional[Connection] = None
+        self.channel: Optional[Channel] = None
+        self.exchange: Optional[Exchange] = None
 
-    async def connect_rm(self):
+    async def connect(self):
         self.connection = await connect(rm_config.rabbit_connection)
         self.channel = await self.connection.channel()
         self.exchange = await self.channel.declare_exchange(rm_config.rm_exchange)
@@ -32,18 +32,22 @@ class RabbitPublisher:
 
     async def close_connection(self):
         if self.channel and not self.channel.is_closed:
-            self.channel.close()
+            await self.channel.close()
         if self.connection and not self.connection.is_closed:
-            self.connection.close()
+            await self.connection.close()
         self.connection = None
         self.channel = None
         self.exchange = None
 
 
-class NotificationService(RabbitPublisher):
+class NotificationService:
+    def __init__(self, session: AsyncSession = Depends(get_db)):
+        self.publisher = RabbitPublisher()
+        self.session = session
+
     async def put_one(self, event_data):
         if await self.check_event(event_data.event_id):
-            await self.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
+            await self.publisher.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
         else:
             raise EventNotFound('Event not found')
 
@@ -51,7 +55,7 @@ class NotificationService(RabbitPublisher):
         for user in users:
             if await self.check_event(event_data.event_id):
                 event_data.user_id = user
-                await self.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
+                await self.publisher.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
             else:
                 raise EventNotFound('Event not found')
 

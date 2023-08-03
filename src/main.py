@@ -11,7 +11,7 @@ from httpx import RequestError
 from api.v1 import notification
 from core.logger import LOGGING
 from core.config import app_config
-from services.notification import notification_service
+from services.notification import notification_service, RabbitPublisher
 
 from dotenv import load_dotenv
 
@@ -20,9 +20,11 @@ load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await notification_service.connect_rm()
+    rabbit_publisher = RabbitPublisher()
+    await rabbit_publisher.connect()
+    notification_service.publisher = rabbit_publisher
     yield
-    await notification_service.close_connection()
+    await rabbit_publisher.close_connection()
 
 
 app = FastAPI(
