@@ -1,5 +1,6 @@
 import logging
 from http import HTTPStatus
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -10,10 +11,20 @@ from httpx import RequestError
 from api.v1 import notification, notification_admin
 from core.logger import LOGGING
 from core.config import app_config
+from services.notification import notification_service, RabbitPublisher
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    rabbit_publisher = RabbitPublisher()
+    await rabbit_publisher.connect()
+    notification_service.publisher = rabbit_publisher
+    yield
+    await rabbit_publisher.close_connection()
 
 
 app = FastAPI(
@@ -21,6 +32,7 @@ app = FastAPI(
     docs_url='/api/openapi',
     openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
+    lifespan=lifespan
 )
 
 app.include_router(notification.router, prefix='/api/v1/notification', tags=['notification'])

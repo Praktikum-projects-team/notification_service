@@ -16,6 +16,7 @@ from db.models_data import (
 )
 from db.models_pg import Event, EventScheduled
 
+
 async_engine = create_async_engine(pg_config.url_async)
 
 
