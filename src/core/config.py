@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from pydantic import BaseSettings, Field
 from dotenv import load_dotenv
@@ -20,6 +21,9 @@ class AuthConfig(BaseSettings):
     host: str = Field(..., env='AUTH_HOST')
     jwt_secret: str = Field(..., env='JWT_SECRET')
     jwt_algorithm: str = Field(..., env='JWT_ALGORITHM')
+    JWT_SECRET_KEY: str = Field(..., env='JWT_SECRET_KEY')
+    JWT_ACCESS_TOKEN_EXPIRES: datetime.timedelta = Field(..., env='ACCESS_TOKEN_TTL_IN_MINUTES')
+    JWT_REFRESH_TOKEN_EXPIRES: datetime.timedelta = Field(..., env='REFRESH_TOKEN_TTL_IN_DAYS')
 
 
 class PostgresConfig(BaseSettings):
@@ -38,6 +42,21 @@ class PostgresConfig(BaseSettings):
         return f'postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}'
 
 
+class RabbitMQConfig(BaseSettings):
+    rm_host: str = Field(..., env='RABBITMQ_HOST')
+    rm_port: int = Field(..., env='RABBITMQ_PORT')
+    rm_user: str = Field(..., env='RABBITMQ_DEFAULT_USER')
+    rm_password: str = Field(..., env='RABBITMQ_DEFAULT_PASS')
+    rm_delivery_mode: int = Field(..., env='RABBITMQ_DELIVERY_MODE')
+    rm_exchange: str = Field(..., env='RABBITMQ_EXCHANGE')
+    rm_instant_queue_name: str = Field(..., env='RABBITMQ_INSTANT_QUEUE')
+
+    @property
+    def rabbit_connection(self):
+        return f"amqp://{self.rm_user}:{self.rm_password}@{self.rm_host}/"
+
+
 app_config = AppConfig()  # type: ignore[call-arg]
 auth_config = AuthConfig()  # type: ignore[call-arg]
 pg_config = PostgresConfig()  # type: ignore[call-arg]
+rm_config = RabbitMQConfig()  # type: ignore[call-arg]

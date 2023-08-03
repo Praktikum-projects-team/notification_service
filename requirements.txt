@@ -17,3 +17,4 @@ sqlalchemy==2.0.19
 alembic==1.11.1
 psycopg2-binary==2.9.6
 asyncpg==0.28.0
+aio-pika==9.2.0
