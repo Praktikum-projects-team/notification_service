@@ -1,6 +1,6 @@
 import logging
 
-from sqlalchemy import update
+from sqlalchemy import delete, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.future import select
@@ -87,7 +87,7 @@ async def get_all_events(session):
         return None
 
 
-async def get_event_by_id(session, event_id: str):
+async def get_event(session, event_id: str):
     try:
         query = select(Event).filter(Event.id == event_id)
         result = await session.execute(query)
@@ -117,7 +117,7 @@ async def get_event_by_id(session, event_id: str):
         return None
 
 
-async def put_event_by_id(session, event_id: str, event_data: EventUpdate):
+async def put_event(session, event_id: str, event_data: EventUpdate):
     try:
         event_query = (
             update(Event)
@@ -135,6 +135,28 @@ async def put_event_by_id(session, event_id: str, event_data: EventUpdate):
         await session.commit()
 
         return True
+
+    except orm_exc.NoResultFound:
+        return None
+
+    except Exception as e:
+        logging.error(e)
+        return None
+
+
+async def delete_event(session, event_id: str):
+    try:
+        event_scheduled_query = delete(EventScheduled).where(EventScheduled.event_id == event_id)
+        await session.execute(event_scheduled_query)
+
+        event_query = delete(Event).where(Event.id == event_id)
+        await session.execute(event_query)
+        await session.commit()
+
+        return True
+
+    except orm_exc.NoResultFound:
+        return None
 
     except Exception as e:
         logging.error(e)

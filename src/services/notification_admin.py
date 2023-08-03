@@ -5,7 +5,15 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models_data import EventCreate, EventScheduledCreate
-from db.postgres import get_all_events, get_db, get_event_by_id, insert_event, insert_event_scheduled, put_event_by_id
+from db.postgres import (
+    delete_event,
+    get_all_events,
+    get_db,
+    get_event,
+    insert_event,
+    insert_event_scheduled,
+    put_event
+)
 
 
 class NotificationAdminService:
@@ -41,7 +49,7 @@ class NotificationAdminService:
 
     async def get_notification(self, event_id):
         try:
-            event = await get_event_by_id(self.session, event_id)
+            event = await get_event(self.session, event_id)
             event_dict = {
                 'id': str(event.id),
                 'description': event.description,
@@ -57,15 +65,21 @@ class NotificationAdminService:
 
     async def put_notification(self, event_id, data):
         try:
-            event_is_updated = await put_event_by_id(self.session, event_id, data)
-            if event_is_updated:
-                return True
-            else:
-                return None
+            await put_event(self.session, event_id, data)
+            return True
 
         except Exception as e:
             logging.error(e)
             return None
+
+    async def delete_notification(self, event_id):
+        try:
+            await delete_event(self.session, event_id)
+            return True
+
+        except Exception as e:
+            logging.error(e)
+            return False
 
 
 @lru_cache()

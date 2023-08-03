@@ -10,7 +10,6 @@ from api.v1.models.notification_admin import (
     NotificationAdminMessageResp,
     NotificationAdminResp,
     UpdateNotificationAdmin,
-    UpdateNotificationAdminResp
 )
 from services.auth import AuthApi
 from services.notification_admin import NotificationAdminService, get_notification_admin_service
@@ -71,7 +70,7 @@ async def get_notification_admin(
 
 @router.put(
     '/{event_id}',
-    response_model=UpdateNotificationAdminResp,
+    response_model=NotificationAdminMessageResp,
     description='Добавление уведомления',
     dependencies=[Depends(BaseJWTBearer())]
 )
@@ -79,9 +78,27 @@ async def update_notification_admin(
         event_id: str,
         data: UpdateNotificationAdmin,
         notification_admin_service: NotificationAdminService = Depends(get_notification_admin_service)
-) -> UpdateNotificationAdminResp:
+) -> NotificationAdminMessageResp:
     event = await notification_admin_service.put_notification(event_id=event_id, data=data)
     if not event:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Notification not found')
 
-    return UpdateNotificationAdminResp(msg="Notification updated")
+    return NotificationAdminMessageResp(msg="Notification updated")
+
+
+@router.delete(
+    '/{event_id}',
+    response_model=NotificationAdminMessageResp,
+    description='Получение одного уведомления',
+    dependencies=[Depends(BaseJWTBearer())]
+)
+async def del_notification_admin(
+        event_id: str,
+        notification_admin_service: NotificationAdminService = Depends(get_notification_admin_service)
+) -> NotificationAdminMessageResp:
+    event = await notification_admin_service.delete_notification(event_id=event_id)
+
+    if not event:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Notification not found')
+
+    return NotificationAdminMessageResp(msg="Notification deleted")

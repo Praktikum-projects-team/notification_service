@@ -30,7 +30,3 @@ class UpdateNotificationAdmin(OrjsonBaseModel):
     description: str
     is_unsubscribeable: bool = Field(default=False)
     cron_string: str
-
-
-class UpdateNotificationAdminResp(OrjsonBaseModel):
-    msg: str
