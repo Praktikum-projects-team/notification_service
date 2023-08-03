@@ -11,7 +11,7 @@ class AddNotificationAdmin(OrjsonBaseModel):
     cron_string: str
 
 
-class AddNotificationAdminResp(OrjsonBaseModel):
+class NotificationAdminMessageResp(OrjsonBaseModel):
     msg: str
 
 
@@ -24,3 +24,13 @@ class NotificationAdminResp(OrjsonBaseModel):
 
 class AllNotificationAdminResp(OrjsonBaseModel):
     events: list[NotificationAdminResp] = Field(default_factory=list)
+
+
+class UpdateNotificationAdmin(OrjsonBaseModel):
+    description: str
+    is_unsubscribeable: bool = Field(default=False)
+    cron_string: str
+
+
+class UpdateNotificationAdminResp(OrjsonBaseModel):
+    msg: str

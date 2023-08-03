@@ -1,5 +1,6 @@
 import logging
 
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.future import select
@@ -10,7 +11,8 @@ from db.models_data import (
     AllEventsWithScheduledResp,
     EventCreate,
     EventResp,
-    EventScheduledCreate
+    EventScheduledCreate,
+    EventUpdate
 )
 from db.models_pg import Event, EventScheduled
 
@@ -112,4 +114,28 @@ async def get_event_by_id(session, event_id: str):
 
     except Exception as e:
         logging.warning(e)
+        return None
+
+
+async def put_event_by_id(session, event_id: str, event_data: EventUpdate):
+    try:
+        event_query = (
+            update(Event)
+            .where(Event.id == event_id)
+            .values(description=event_data.description, is_unsubscribeable=event_data.is_unsubscribeable)
+        )
+        await session.execute(event_query)
+
+        event_scheduled_query = (
+            update(EventScheduled)
+            .where(EventScheduled.event_id == event_id)
+            .values(cron_string=event_data.cron_string)
+        )
+        await session.execute(event_scheduled_query)
+        await session.commit()
+
+        return True
+
+    except Exception as e:
+        logging.error(e)
         return None

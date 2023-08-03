@@ -5,7 +5,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models_data import EventCreate, EventScheduledCreate
-from db.postgres import get_all_events, get_db, get_event_by_id, insert_event, insert_event_scheduled
+from db.postgres import get_all_events, get_db, get_event_by_id, insert_event, insert_event_scheduled, put_event_by_id
 
 
 class NotificationAdminService:
@@ -13,11 +13,16 @@ class NotificationAdminService:
         self.session = session
 
     async def post_notification(self, data):
-        event_data = EventCreate(description=data.description, is_unsubscribeable=data.is_unsubscribeable)
-        event_id = await insert_event(event_data, self.session)
+        try:
+            event_data = EventCreate(description=data.description, is_unsubscribeable=data.is_unsubscribeable)
+            event_id = await insert_event(event_data, self.session)
 
-        event_scheduled_data = EventScheduledCreate(event_id=event_id, cron_string=data.cron_string)
-        await insert_event_scheduled(event_scheduled_data, self.session)
+            event_scheduled_data = EventScheduledCreate(event_id=event_id, cron_string=data.cron_string)
+            await insert_event_scheduled(event_scheduled_data, self.session)
+
+        except Exception as e:
+            logging.error(e)
+            return None
 
     async def get_all_notifications(self):
         all_events = await get_all_events(self.session)
@@ -45,6 +50,18 @@ class NotificationAdminService:
             }
 
             return event_dict
+
+        except Exception as e:
+            logging.error(e)
+            return None
+
+    async def put_notification(self, event_id, data):
+        try:
+            event_is_updated = await put_event_by_id(self.session, event_id, data)
+            if event_is_updated:
+                return True
+            else:
+                return None
 
         except Exception as e:
             logging.error(e)

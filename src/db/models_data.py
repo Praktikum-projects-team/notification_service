@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import Any
 from uuid import UUID
 
 from pydantic import Field
@@ -20,6 +19,12 @@ class EventCreate(OrjsonBaseModel):
 
 class EventScheduledCreate(OrjsonBaseModel):
     event_id: UUID
+    cron_string: str
+
+
+class EventUpdate(OrjsonBaseModel):
+    description: str
+    is_unsubscribeable: bool
     cron_string: str
 
 

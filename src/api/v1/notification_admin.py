@@ -1,10 +1,17 @@
+import logging
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.v1.auth.auth_bearer import BaseJWTBearer
-from api.v1.models.notification_admin import AllNotificationAdminResp, AddNotificationAdmin, AddNotificationAdminResp, \
-    NotificationAdminResp
+from api.v1.models.notification_admin import (
+    AllNotificationAdminResp,
+    AddNotificationAdmin,
+    NotificationAdminMessageResp,
+    NotificationAdminResp,
+    UpdateNotificationAdmin,
+    UpdateNotificationAdminResp
+)
 from services.auth import AuthApi
 from services.notification_admin import NotificationAdminService, get_notification_admin_service
 
@@ -14,17 +21,21 @@ auth_api = AuthApi()
 
 @router.post(
     '/',
-    response_model=AddNotificationAdminResp,
+    response_model=NotificationAdminMessageResp,
     description='Добавление уведомления',
     dependencies=[Depends(BaseJWTBearer())]
 )
 async def add_notification_admin(
         data: AddNotificationAdmin,
         notification_admin_service: NotificationAdminService = Depends(get_notification_admin_service)
-) -> AddNotificationAdminResp:
-    await notification_admin_service.post_notification(data)
+) -> NotificationAdminMessageResp:
+    try:
+        await notification_admin_service.post_notification(data)
+    except Exception as e:
+        logging.error(e)
+        return NotificationAdminMessageResp(msg="Adding notification is failed")
 
-    return AddNotificationAdminResp(msg="Notification added")
+    return NotificationAdminMessageResp(msg="Notification added")
 
 
 @router.get(
@@ -56,3 +67,21 @@ async def get_notification_admin(
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Notification not found')
 
     return NotificationAdminResp(**event)
+
+
+@router.put(
+    '/{event_id}',
+    response_model=UpdateNotificationAdminResp,
+    description='Добавление уведомления',
+    dependencies=[Depends(BaseJWTBearer())]
+)
+async def update_notification_admin(
+        event_id: str,
+        data: UpdateNotificationAdmin,
+        notification_admin_service: NotificationAdminService = Depends(get_notification_admin_service)
+) -> UpdateNotificationAdminResp:
+    event = await notification_admin_service.put_notification(event_id=event_id, data=data)
+    if not event:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Notification not found')
+
+    return UpdateNotificationAdminResp(msg="Notification updated")
