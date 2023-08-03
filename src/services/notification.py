@@ -3,8 +3,9 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from aio_pika import connect, Message
 import orjson
-from src.core.config import rm_config
-from src.db.postgres import get_db, get_event_by_id
+
+from core.config import rm_config
+from db.postgres import get_db, get_event_by_id
 
 
 class EventNotFound(Exception):
@@ -70,7 +71,7 @@ class NotificationService(RabbitPublisher):
             else:
                 await self.put_one(event_data)
                 return {'msg': 'Notification for user has been added to the instant queue'}
-        except (UserNotFound, EventNotFound):
+        except EventNotFound:
             raise
 
 

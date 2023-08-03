@@ -3,10 +3,10 @@ from http import HTTPStatus
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db.postgres import get_db
-from src.services.auth import AuthApi
-from src.services.notification import NotificationService, get_notification_service, EventNotFound
-from src.api.v1.models.notification import ServiceNotificationRequest
+from db.postgres import get_db
+from services.auth import AuthApi
+from services.notification import NotificationService, get_notification_service, EventNotFound
+from api.v1.models.notification import ServiceNotificationRequest
 
 router = APIRouter()
 auth_api = AuthApi()

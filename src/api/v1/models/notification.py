@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from src.core.base_model import OrjsonBaseModel
+from core.base_model import OrjsonBaseModel
 
 
 class ServiceNotificationRequest(OrjsonBaseModel):

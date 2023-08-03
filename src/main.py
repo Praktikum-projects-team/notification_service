@@ -8,10 +8,10 @@ from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import ORJSONResponse
 from httpx import RequestError
 
-from src.api.v1 import notification
-from src.core.logger import LOGGING
-from src.core.config import app_config
-from src.services.notification import notification_service
+from api.v1 import notification
+from core.logger import LOGGING
+from core.config import app_config
+from services.notification import notification_service
 
 from dotenv import load_dotenv
 

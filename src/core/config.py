@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from pydantic import BaseSettings, Field
 from dotenv import load_dotenv
@@ -20,6 +21,9 @@ class AuthConfig(BaseSettings):
     host: str = Field(..., env='AUTH_HOST')
     jwt_secret: str = Field(..., env='JWT_SECRET')
     jwt_algorithm: str = Field(..., env='JWT_ALGORITHM')
+    JWT_SECRET_KEY: str = Field(..., env='JWT_SECRET_KEY')
+    JWT_ACCESS_TOKEN_EXPIRES: datetime.timedelta = Field(..., env='ACCESS_TOKEN_TTL_IN_MINUTES')
+    JWT_REFRESH_TOKEN_EXPIRES: datetime.timedelta = Field(..., env='REFRESH_TOKEN_TTL_IN_DAYS')
 
 
 class PostgresConfig(BaseSettings):
