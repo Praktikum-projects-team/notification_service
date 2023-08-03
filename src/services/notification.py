@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aio_pika import connect, Message
 from aio_pika.abc import AbstractChannel, AbstractExchange, AbstractConnection
 import orjson
-from typing import Optional
 
 from core.config import rm_config
 from db.postgres import get_db, get_event_by_id
@@ -16,10 +15,10 @@ class EventNotFound(Exception):
 
 
 class RabbitPublisher:
-    def __init__(self):
-        self.connection: Optional[AbstractConnection] = None
-        self.channel: Optional[AbstractChannel] = None
-        self.exchange: Optional[AbstractExchange] = None
+    def __init__(self, connection=None, channel=None, exchange=None):
+        self.connection: AbstractConnection = connection
+        self.channel: AbstractChannel = channel
+        self.exchange: AbstractExchange = exchange
 
     async def connect(self):
         self.connection = await connect(rm_config.rabbit_connection)
