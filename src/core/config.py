@@ -56,7 +56,7 @@ class RabbitMQConfig(BaseSettings):
         return f"amqp://{self.rm_user}:{self.rm_password}@{self.rm_host}/"
 
 
-app_config = AppConfig()
-auth_config = AuthConfig()
-pg_config = PostgresConfig()
-rm_config = RabbitMQConfig()
+app_config = AppConfig()  # type: ignore[call-arg]
+auth_config = AuthConfig()  # type: ignore[call-arg]
+pg_config = PostgresConfig()  # type: ignore[call-arg]
+rm_config = RabbitMQConfig()  # type: ignore[call-arg]
