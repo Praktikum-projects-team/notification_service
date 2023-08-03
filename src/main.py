@@ -1,5 +1,6 @@
 import logging
 from http import HTTPStatus
+from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
@@ -10,10 +11,18 @@ from httpx import RequestError
 from src.api.v1 import notification
 from src.core.logger import LOGGING
 from src.core.config import app_config
+from src.services.notification import notification_service
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await notification_service.connect_rm()
+    yield
+    await notification_service.close_connection()
 
 
 app = FastAPI(
@@ -21,6 +30,7 @@ app = FastAPI(
     docs_url='/api/openapi',
     openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
+    lifespan=lifespan
 )
 
 app.include_router(notification.router, prefix='/api/v1/notification', tags=['notification'])
@@ -40,4 +50,3 @@ if __name__ == '__main__':
         log_config=LOGGING,
         log_level=logging.DEBUG if app_config.is_debug else logging.INFO,
     )
-
