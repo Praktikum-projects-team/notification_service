@@ -7,10 +7,6 @@ from src.core.config import rm_config
 from src.db.postgres import get_db, get_event_by_id
 
 
-class UserNotFound(Exception):
-    ...
-
-
 class EventNotFound(Exception):
     ...
 
@@ -45,25 +41,18 @@ class RabbitPublisher:
 
 class NotificationService(RabbitPublisher):
     async def put_one(self, event_data):
-        if await self.check_user(event_data.user_id) and await self.check_event(event_data.event_id):
+        if await self.check_event(event_data.event_id):
             await self.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
-        elif await self.check_user(event_data.user_id) is False:
-            raise UserNotFound('User not found')
         else:
             raise EventNotFound('Event not found')
 
     async def put_many(self, event_data, users):
         for user in users:
-            if await self.check_user(user) and await self.check_event(event_data.event_id):
+            if await self.check_event(event_data.event_id):
                 event_data.user_id = user
                 await self.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
-            elif await self.check_user(user) is False:
-                raise UserNotFound('User not found')
             else:
                 raise EventNotFound('Event not found')
-
-    async def check_user(self, user_id):
-        return True
 
     async def check_event(self, event_id):
         event = await get_event_by_id(event_id, self.session)

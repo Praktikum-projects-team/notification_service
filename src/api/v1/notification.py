@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.db.postgres import get_db
 from src.services.auth import AuthApi
-from src.services.notification import NotificationService, get_notification_service, EventNotFound, UserNotFound
+from src.services.notification import NotificationService, get_notification_service, EventNotFound
 from src.api.v1.models.notification import ServiceNotificationRequest
 
 router = APIRouter()
@@ -34,5 +34,5 @@ async def add_notification_service(data: ServiceNotificationRequest,
                                    notification_service: NotificationService = Depends(get_notification_service)):
     try:
         return await notification_service.publish_event(data)
-    except (EventNotFound, UserNotFound) as err:
+    except EventNotFound as err:
         return {'msg': str(err)}, HTTPStatus.NOT_FOUND
