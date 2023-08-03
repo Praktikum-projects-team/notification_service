@@ -1,12 +1,14 @@
 from functools import lru_cache
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from aio_pika import connect, Message, Connection, Channel, Exchange
+from aio_pika import connect, Message
+from aio_pika.abc import AbstractChannel, AbstractExchange, AbstractConnection
 import orjson
 from typing import Optional
 
 from core.config import rm_config
 from db.postgres import get_db, get_event_by_id
+from api.v1.models.notification import ServiceNotificationRequest
 
 
 class EventNotFound(Exception):
@@ -15,16 +17,16 @@ class EventNotFound(Exception):
 
 class RabbitPublisher:
     def __init__(self):
-        self.connection: Optional[Connection] = None
-        self.channel: Optional[Channel] = None
-        self.exchange: Optional[Exchange] = None
+        self.connection: Optional[AbstractConnection] = None
+        self.channel: Optional[AbstractChannel] = None
+        self.exchange: Optional[AbstractExchange] = None
 
     async def connect(self):
         self.connection = await connect(rm_config.rabbit_connection)
         self.channel = await self.connection.channel()
         self.exchange = await self.channel.declare_exchange(rm_config.rm_exchange)
 
-    async def put_event_to_queue(self, event_data, queue_name: str):
+    async def put_event_to_queue(self, event_data: ServiceNotificationRequest, queue_name: str):
         msg = Message(body=orjson.dumps(event_data.dict()), delivery_mode=rm_config.rm_delivery_mode)
         queue = await self.channel.declare_queue(name=queue_name)
         await queue.bind(self.exchange)
@@ -45,13 +47,13 @@ class NotificationService:
         self.publisher = RabbitPublisher()
         self.session = session
 
-    async def put_one(self, event_data):
+    async def put_one(self, event_data: ServiceNotificationRequest):
         if await self.check_event(event_data.event_id):
             await self.publisher.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
         else:
             raise EventNotFound('Event not found')
 
-    async def put_many(self, event_data, users):
+    async def put_many(self, event_data: ServiceNotificationRequest, users: list):
         for user in users:
             if await self.check_event(event_data.event_id):
                 event_data.user_id = user
@@ -59,14 +61,14 @@ class NotificationService:
             else:
                 raise EventNotFound('Event not found')
 
-    async def check_event(self, event_id):
+    async def check_event(self, event_id: str):
         event = await get_event_by_id(event_id, self.session)
         if event:
             return True
         else:
             return False
 
-    async def publish_event(self, event_data):
+    async def publish_event(self, event_data: ServiceNotificationRequest):
         receiver = event_data.user_id
         try:
             if isinstance(receiver, list):
