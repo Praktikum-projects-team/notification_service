@@ -1,10 +1,11 @@
+import logging
 from functools import lru_cache
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models_data import EventCreate, EventScheduledCreate
-from db.postgres import get_all_events, get_db, insert_event, insert_event_scheduled
+from db.postgres import get_all_events, get_db, get_event_by_id, insert_event, insert_event_scheduled
 
 
 class NotificationAdminService:
@@ -32,6 +33,22 @@ class NotificationAdminService:
             all_events_for_resp.append(event_dict)
 
         return all_events_for_resp
+
+    async def get_notification(self, event_id):
+        try:
+            event = await get_event_by_id(self.session, event_id)
+            event_dict = {
+                'id': str(event.id),
+                'description': event.description,
+                'is_unsubscribeable': event.is_unsubscribeable,
+                'cron_string': event.cron_string
+            }
+
+            return event_dict
+
+        except Exception as e:
+            logging.error(e)
+            return None
 
 
 @lru_cache()

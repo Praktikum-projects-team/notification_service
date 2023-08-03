@@ -23,10 +23,11 @@ class EventScheduledCreate(OrjsonBaseModel):
     cron_string: str
 
 
-class EventResponse(OrjsonBaseModel):
+class EventResp(OrjsonBaseModel):
     id: UUID
     description: str
     is_unsubscribeable: bool
+    cron_string: str
 
 
 class EventWithScheduledResp(OrjsonBaseModel):
@@ -37,5 +38,4 @@ class EventWithScheduledResp(OrjsonBaseModel):
 
 
 class AllEventsWithScheduledResp(OrjsonBaseModel):
-    # events_all: list
     events: list[EventWithScheduledResp] = Field(default_factory=list)

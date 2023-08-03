@@ -9,7 +9,7 @@ from core.config import pg_config
 from db.models_data import (
     AllEventsWithScheduledResp,
     EventCreate,
-    EventResponse,
+    EventResp,
     EventScheduledCreate
 )
 from db.models_pg import Event, EventScheduled
@@ -20,21 +20,6 @@ async_engine = create_async_engine(pg_config.url_async)
 async def get_db():
     async with AsyncSession(async_engine) as session:
         yield session
-
-
-async def get_event_by_id(event_id: str, session):
-    try:
-        query = select(Event).filter(Event.id == event_id)
-        result = await session.execute(query)
-        event = result.scalar_one()
-        return EventResponse(**event.dict())
-
-    except orm_exc.NoResultFound:
-        return None
-
-    except Exception as e:
-        logging.warning(e)
-        return None
 
 
 async def insert_event(event_data: EventCreate, session):
@@ -97,4 +82,34 @@ async def get_all_events(session):
 
     except Exception as e:
         logging.error(e)
+        return None
+
+
+async def get_event_by_id(session, event_id: str):
+    try:
+        query = select(Event).filter(Event.id == event_id)
+        result = await session.execute(query)
+        event = result.scalar_one()
+
+        event_scheduled = await session.execute(
+            select(EventScheduled.cron_string)
+            .where(EventScheduled.event_id == event_id)
+            .limit(1)
+        )
+
+        cron_string = event_scheduled.scalar_one_or_none()
+        formatted_event = {
+            'id': str(event.id),
+            'description': event.description,
+            'is_unsubscribeable': event.is_unsubscribeable,
+            'cron_string': cron_string
+        }
+
+        return EventResp(**formatted_event)
+
+    except orm_exc.NoResultFound:
+        return None
+
+    except Exception as e:
+        logging.warning(e)
         return None
