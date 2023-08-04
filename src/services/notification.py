@@ -6,7 +6,7 @@ from aio_pika.abc import AbstractChannel, AbstractExchange, AbstractConnection
 import orjson
 
 from core.config import rm_config
-from db.postgres import get_db, get_event_by_id
+from db.postgres import get_db, get_event
 from api.v1.models.notification import ServiceNotificationRequest
 
 
@@ -61,7 +61,7 @@ class NotificationService:
                 raise EventNotFound('Event not found')
 
     async def check_event(self, event_id: str):
-        event = await get_event_by_id(event_id, self.session)
+        event = await get_event(event_id, self.session)
         if event:
             return True
         else:

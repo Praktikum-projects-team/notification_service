@@ -8,7 +8,7 @@ from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import ORJSONResponse
 from httpx import RequestError
 
-from api.v1 import notification
+from api.v1 import notification, notification_admin
 from core.logger import LOGGING
 from core.config import app_config
 from services.notification import notification_service, RabbitPublisher
@@ -36,6 +36,7 @@ app = FastAPI(
 )
 
 app.include_router(notification.router, prefix='/api/v1/notification', tags=['notification'])
+app.include_router(notification_admin.router, prefix='/api/v1/notification/admin', tags=['notification'])
 
 
 @app.exception_handler(RequestError)
