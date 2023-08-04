@@ -70,8 +70,17 @@ services:
     build: .
     env_file:
       - envs/notification/.env
-    volumes:
-      - $HOME/postgresql/notification_data:/var/lib/postgresql/notification_api_data
+    depends_on:
+      notification_postgres:
+        condition: service_healthy
+    networks:
+      - cinema
+
+  scheduler:
+    container_name: scheduler
+    build: cron_scheduler
+    env_file:
+      - cron_scheduler/.env
     depends_on:
       notification_postgres:
         condition: service_healthy
