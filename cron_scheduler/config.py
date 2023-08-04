@@ -21,7 +21,10 @@ class RabbitMQ(BaseSettings):
     user_name: str = Field('guest', env='RABBITMQ_DEFAULT_USER')
     password: str = Field('guest', env='RABBITMQ_DEFAULT_PASS')
     port: int = Field(5672, env='RABBITMQ_PORT')
-    queue_name: str = Field('first', env='RABBITMQ_QUEUE_NAME')
+    queue_name: str = Field(env='RABBITMQ_SCHEDULED_QUEUE')
 
     class Config:
         env_file = '.env'
+
+
+rabbit_conf = RabbitMQ()

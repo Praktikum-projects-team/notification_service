@@ -11,7 +11,7 @@ engine = create_engine(PostgresConfig().dsn)
 
 def get_scheduled_events():
     with Session(engine) as session:
-        # e = select(EventScheduled).where(EventScheduled.is_active=True)
+        # stmt = select(EventScheduled).where(EventScheduled.is_active=True)
         stmt = select(EventScheduled)
         for event in session.scalars(stmt):
             yield event
