@@ -44,3 +44,9 @@ class EventWithScheduledResp(OrjsonBaseModel):
 
 class AllEventsWithScheduledResp(OrjsonBaseModel):
     events: list[EventWithScheduledResp] = Field(default_factory=list)
+
+
+class UserNotification(OrjsonBaseModel):
+    user_id: UUID
+    event_id: UUID
+    additional_data: dict
