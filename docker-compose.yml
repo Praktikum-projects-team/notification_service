@@ -45,7 +45,6 @@ services:
       - ./rabbitmq:/var/lib/rabbitmq
     ports:
       - "15672:15672"
-      - "5672:5672"
     networks:
       - cinema
 
@@ -62,8 +61,6 @@ services:
       timeout: 3s
       retries: 3
     restart: always
-    ports:
-      - "5432:5432"
     networks:
       - cinema
 
@@ -74,8 +71,6 @@ services:
       - envs/notification/.env
     volumes:
       - $HOME/postgresql/notification_data:/var/lib/postgresql/notification_api_data
-    ports:
-      - "8001:8001"
     depends_on:
       notification_postgres:
         condition: service_healthy
