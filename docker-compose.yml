@@ -9,8 +9,6 @@ services:
     volumes:
       - $HOME/postgresql/auth_data:/var/lib/postgresql/auth_api_data
     restart: always
-    ports:
-      - "5432:5432"
     networks:
       - cinema
 
@@ -21,8 +19,6 @@ services:
       - envs/auth/.env
     volumes:
       - $HOME/redis/data:/var/lib/redis/data
-    ports:
-      - "6379:6379"
     networks:
       - cinema
 
@@ -39,6 +35,18 @@ services:
     networks:
       - cinema
 
+  rabbitmq:
+    image: rabbitmq:3.10.7-management
+    hostname: rabbitmq
+    restart: always
+    env_file:
+      - envs/notification/.env
+    volumes:
+      - ./rabbitmq:/var/lib/rabbitmq
+    ports:
+      - 15672:15672
+      - 5672:5672
+
   notification_postgres:
     container_name: notification_postgres
     image: "postgres:13"
@@ -53,7 +61,7 @@ services:
       retries: 3
     restart: always
     ports:
-      - "5433:5432"
+      - "5432:5432"
     networks:
       - cinema
 
@@ -87,3 +95,4 @@ services:
 networks:
   cinema:
     name: cinema
+
