@@ -9,4 +9,6 @@ RUN pip install --upgrade pip \
 
 COPY . .
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT wait-for-it -s "${POSTGRES_HOST}:${POSTGRES_PORT}" --timeout 60 \
+            && wait-for-it -s "${RABBITMQ_HOST}:${RABBITMQ_PORT}" --timeout 60 \
+            && python main.py

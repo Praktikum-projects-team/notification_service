@@ -72,10 +72,10 @@ class NotificationService:
         try:
             if isinstance(receiver, list):
                 await self.put_many(event_data, receiver)
-                return {'msg': 'Notifications for each user from the list have been added to the instant queue'}
+                return {'msg': 'Notifications for each user from the list have been added to the instant event_queue'}
             else:
                 await self.put_one(event_data)
-                return {'msg': 'Notification for user has been added to the instant queue'}
+                return {'msg': 'Notification for user has been added to the instant event_queue'}
         except EventNotFound:
             raise
 

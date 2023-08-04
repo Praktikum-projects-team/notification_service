@@ -53,7 +53,7 @@ class EventScheduled(Base):
 class ScheduledEventUser(Base):
     __tablename__ = 'scheduled_events_users'
     scheduled_event_id = Column(UUID(as_uuid=True), ForeignKey('events_scheduled.id'), primary_key=True)
-    user_id = Column(UUID(as_uuid=True))
+    user_id = Column(UUID(as_uuid=True), primary_key=True)
 
 
 class NotificationSent(Base):
