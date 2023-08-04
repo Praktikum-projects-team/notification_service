@@ -6,6 +6,7 @@ from aio_pika.abc import AbstractChannel, AbstractExchange, AbstractConnection
 import orjson
 import random
 import string
+from uuid import UUID
 
 from core.config import rm_config, app_config
 from db.postgres import get_db, get_event_by_id, get_link, insert_short_link
@@ -87,12 +88,12 @@ class NotificationService:
                        "user_id": str(link_data.user_id)}
         return link_data.original_link, link_params
 
-    async def generate_link(self):
+    async def generate_link(self) -> str:
         letters_and_numbs = string.ascii_letters + string.digits
         random_string = ''.join(random.sample(letters_and_numbs, 8))
         return random_string
 
-    async def make_short_link(self, user_id):
+    async def make_short_link(self, user_id: UUID) -> str:
         generated_link = await self.generate_link()
         await insert_short_link(generated_link, user_id, self.session)
         link = f'http://{app_config.host}:{app_config.port}/api/v1/welcome/{generated_link}'
