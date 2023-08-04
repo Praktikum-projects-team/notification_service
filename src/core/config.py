@@ -24,6 +24,8 @@ class AuthConfig(BaseSettings):
     JWT_SECRET_KEY: str = Field(..., env='JWT_SECRET_KEY')
     JWT_ACCESS_TOKEN_EXPIRES: datetime.timedelta = Field(..., env='ACCESS_TOKEN_TTL_IN_MINUTES')
     JWT_REFRESH_TOKEN_EXPIRES: datetime.timedelta = Field(..., env='REFRESH_TOKEN_TTL_IN_DAYS')
+    admin_login: str = Field(..., env='AUTH_ADMIN_LOGIN')
+    admin_password: str = Field(..., env='AUTH_ADMIN_PASSWORD')
 
     @property
     def url_verify(self):
@@ -58,13 +60,22 @@ class RabbitMQConfig(BaseSettings):
     rm_delivery_mode: int = Field(..., env='RABBITMQ_DELIVERY_MODE')
     rm_exchange: str = Field(..., env='RABBITMQ_EXCHANGE')
     rm_instant_queue_name: str = Field(..., env='RABBITMQ_INSTANT_QUEUE')
+    rm_ordinary_queue_name: str = Field(..., env='RABBITMQ_ORDINARY_QUEUE')
 
     @property
     def rabbit_connection(self):
         return f"amqp://{self.rm_user}:{self.rm_password}@{self.rm_host}/"
 
 
+class SMTPConfig(BaseSettings):
+    host: str = Field(..., env='SMTP_HOST')
+    port: int = Field(..., env='SMTP_PORT')
+    email: str = Field(..., env='SMTP_EMAIL')
+    password: str = Field(..., env='SMTP_PASSWORD')
+
+
 app_config = AppConfig()  # type: ignore[call-arg]
 auth_config = AuthConfig()  # type: ignore[call-arg]
 pg_config = PostgresConfig()  # type: ignore[call-arg]
 rm_config = RabbitMQConfig()  # type: ignore[call-arg]
+smtp_config = SMTPConfig()  # type: ignore[call-arg]

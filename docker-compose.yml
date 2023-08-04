@@ -93,6 +93,29 @@ services:
     networks:
       - cinema
 
+  notification_worker:
+    container_name: notification_worker
+    build: .
+    command: python3 notification_worker.py
+    env_file:
+      - envs/notification/.env
+    depends_on:
+      notification_postgres:
+        condition: service_healthy
+    networks:
+      - cinema
+
+  smtp_test:
+    container_name: smtp_test
+    image: python:3.10
+    command: python3 -m smtpd -c DebuggingServer -n 0.0.0.0:1025
+    env_file:
+      - envs/notification/.env
+    expose:
+      - 1025
+    networks:
+      - cinema
+
   nginx:
     container_name: nginx
     image: nginx:latest

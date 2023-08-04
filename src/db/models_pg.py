@@ -40,6 +40,7 @@ class ScheduledEventUser(Base):
 class Template(Base):
     __tablename__ = 'templates'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String)
     description = Column(String)
     template = Column(String)
 
