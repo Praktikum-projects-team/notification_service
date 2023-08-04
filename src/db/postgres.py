@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 from sqlalchemy import delete, update
@@ -15,7 +16,7 @@ from db.models_data import (
     EventUpdate
 )
 from db.models_pg import Event, EventScheduled
-
+from db.models_pg import ShortLinks
 
 async_engine = create_async_engine(pg_config.url_async)
 
@@ -41,19 +42,6 @@ async def insert_event(event_data: EventCreate, session):
 
     except Exception as e:
         session.rollback()
-        logging.error(e)
-        return None
-
-
-async def insert_event_scheduled(event_scheduled_data: EventScheduledCreate, session):
-    try:
-        event_scheduled = EventScheduled(**event_scheduled_data.dict())
-        session.add(event_scheduled)
-        await session.commit()
-        await session.refresh(event_scheduled)
-        return event_scheduled.id
-
-    except Exception as e:
         logging.error(e)
         return None
 
@@ -84,6 +72,7 @@ async def get_all_events(session):
         return AllEventsWithScheduledResp(events=formatted_events_all)
 
     except Exception as e:
+
         logging.error(e)
         return None
 
@@ -161,4 +150,47 @@ async def delete_event(session, event_id: str):
 
     except Exception as e:
         logging.error(e)
+        return None
+
+
+async def insert_event_scheduled(event_scheduled_data: EventScheduledCreate, session):
+    try:
+        event_scheduled = EventScheduled(**event_scheduled_data.dict())
+        session.add(event_scheduled)
+        await session.commit()
+        await session.refresh(event_scheduled)
+
+        return event_scheduled.id
+
+    except Exception as e:
+        logging.error(e)
+
+        return None
+
+
+async def insert_short_link(link: str, user_id, session: AsyncSession):
+    try:
+        ttl = datetime.datetime.utcnow() + datetime.timedelta(1)
+        short_link_data = ShortLinks(short_link=link, user_id=user_id, ttl=ttl)
+        session.add(short_link_data)
+        await session.commit()
+        await session.refresh(short_link_data)
+
+    except Exception as e:
+        await session.rollback()
+
+
+async def get_link(short_link: str, session):
+    try:
+        query = select(ShortLinks).filter(ShortLinks.short_link == short_link)
+        result = await session.execute(query)
+        link = result.scalar_one()
+
+        return link
+
+    except orm_exc.NoResultFound:
+        return None
+
+    except Exception as e:
+        logging.warning(e)
         return None

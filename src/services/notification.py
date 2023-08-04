@@ -1,13 +1,19 @@
+import random
+import string
 from functools import lru_cache
+from uuid import UUID
+
+import orjson
+from aio_pika import Message, connect
+from aio_pika.abc import AbstractChannel, AbstractConnection, AbstractExchange
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from aio_pika import connect, Message
-from aio_pika.abc import AbstractChannel, AbstractExchange, AbstractConnection
-import orjson
 
+from api.v1.models.notification import ServiceNotificationRequest
+from core.config import app_config
 from core.config import rm_config
 from db.postgres import get_db, get_event
-from api.v1.models.notification import ServiceNotificationRequest
+from db.postgres import get_link, insert_short_link
 
 
 class EventNotFound(Exception):
@@ -61,7 +67,7 @@ class NotificationService:
                 raise EventNotFound('Event not found')
 
     async def check_event(self, event_id: str):
-        event = await get_event(event_id, self.session)
+        event = await get_event(self.session, event_id)
         if event:
             return True
         else:
@@ -79,10 +85,24 @@ class NotificationService:
         except EventNotFound:
             raise
 
+    async def get_welcome_msg_info(self, short_link: str):
+        link_data = await get_link(short_link, self.session)
+        link_params = {"ttl": str(link_data.ttl), "redirect_link": link_data.redirect_url,
+                       "user_id": str(link_data.user_id)}
+        return link_data.original_link, link_params
 
-notification_service: NotificationService = NotificationService()
+    async def generate_link(self) -> str:
+        letters_and_numbs = string.ascii_letters + string.digits
+        random_string = ''.join(random.sample(letters_and_numbs, 8))
+        return random_string
+
+    async def make_short_link(self, user_id: UUID) -> str:
+        generated_link = await self.generate_link()
+        await insert_short_link(generated_link, user_id, self.session)
+        link = f'http://{app_config.host}:{app_config.port}/api/v1/welcome/{generated_link}'
+        return link
 
 
 @lru_cache()
-def get_notification_service() -> NotificationService:
-    return notification_service
+def get_notification_service(session: AsyncSession = Depends(get_db)) -> NotificationService:
+    return NotificationService(session=session)

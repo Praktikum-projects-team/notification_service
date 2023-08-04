@@ -8,10 +8,12 @@ from fastapi.exception_handlers import http_exception_handler
 from fastapi.responses import ORJSONResponse
 from httpx import RequestError
 
+from api.v1 import welcome_message
+
 from api.v1 import notification, notification_admin
 from core.logger import LOGGING
 from core.config import app_config
-from services.notification import notification_service, RabbitPublisher
+from services.notification import RabbitPublisher, get_notification_service
 
 from dotenv import load_dotenv
 
@@ -22,6 +24,7 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     rabbit_publisher = RabbitPublisher()
     await rabbit_publisher.connect()
+    notification_service = get_notification_service()
     notification_service.publisher = rabbit_publisher
     yield
     await rabbit_publisher.close_connection()
@@ -36,6 +39,7 @@ app = FastAPI(
 )
 
 app.include_router(notification.router, prefix='/api/v1/notification', tags=['notification'])
+app.include_router(welcome_message.router, prefix='/api/v1/welcome', tags=['welcome_message'])
 app.include_router(notification_admin.router, prefix='/api/v1/notification/admin', tags=['notification'])
 
 
