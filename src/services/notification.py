@@ -1,16 +1,19 @@
-from functools import lru_cache
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from aio_pika import connect, Message
-from aio_pika.abc import AbstractChannel, AbstractExchange, AbstractConnection
-import orjson
 import random
 import string
+from functools import lru_cache
 from uuid import UUID
 
-from core.config import rm_config, app_config
-from db.postgres import get_db, get_event_by_id, get_link, insert_short_link
+import orjson
+from aio_pika import Message, connect
+from aio_pika.abc import AbstractChannel, AbstractConnection, AbstractExchange
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from api.v1.models.notification import ServiceNotificationRequest
+from core.config import app_config
+from core.config import rm_config
+from db.postgres import get_db, get_event
+from db.postgres import get_link, insert_short_link
 
 
 class EventNotFound(Exception):
@@ -64,7 +67,7 @@ class NotificationService:
                 raise EventNotFound('Event not found')
 
     async def check_event(self, event_id: str):
-        event = await get_event_by_id(event_id, self.session)
+        event = await get_event(self.session, event_id)
         if event:
             return True
         else:

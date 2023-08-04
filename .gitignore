@@ -160,3 +160,4 @@ cython_debug/
 .idea/
 /envs/auth/.env
 /rabbitmq/
+/tests/.env
