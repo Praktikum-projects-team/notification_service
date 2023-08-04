@@ -16,10 +16,9 @@ if __name__ == "__main__":
 
     for event in get_scheduled_events():
         scheduler.add_job(
-            rabbit.publish_events(),
+            rabbit.publish_events,
             CronTrigger.from_crontab(event.cron_string),
             [event.event_id, event.users, rabbit_conf.queue_name]
         )
-    scheduler.print_jobs()
     scheduler.start()
     rabbit.close_connection()

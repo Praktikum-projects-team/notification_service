@@ -3,6 +3,8 @@ import uuid
 import orjson
 import pika
 
+from db.models import ScheduledEventUser
+
 
 class SyncRabbitPublisher:
     def __init__(self, host: str, port: int, username: str, password: str):
@@ -13,16 +15,15 @@ class SyncRabbitPublisher:
         )
         self.connection = pika.BlockingConnection(parameters)
 
-    def publish_events(self, event: uuid.UUID, users: list, queue: str):
-        with self.connection.channel() as channel:
-            body = {'event_id': event}
-            for user in users:
-                body['user_id'] = user.id
-                channel.basic_publish(
-                    exchange=queue + '_exchange',
-                    routing_key=queue,
-                    body=orjson.dumps(body),
-                )
+    def publish_events(self, event: uuid.UUID, users: list[ScheduledEventUser], queue: str):
+        body = {'event_id': event}
+        for user in users:
+            body['user_id'] = user.user_id
+            self.connection.channel().basic_publish(
+                exchange=queue,
+                routing_key=queue,
+                body=orjson.dumps(body),
+            )
 
     def close_connection(self):
         self.connection.close()
