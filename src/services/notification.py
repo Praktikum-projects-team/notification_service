@@ -4,9 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from aio_pika import connect, Message
 from aio_pika.abc import AbstractChannel, AbstractExchange, AbstractConnection
 import orjson
+import random
+import string
 
-from core.config import rm_config
-from db.postgres import get_db, get_event_by_id
+from core.config import rm_config, app_config
+from db.postgres import get_db, get_event_by_id, get_link, insert_short_link
 from api.v1.models.notification import ServiceNotificationRequest
 
 
@@ -78,6 +80,23 @@ class NotificationService:
                 return {'msg': 'Notification for user has been added to the instant queue'}
         except EventNotFound:
             raise
+
+    async def get_welcome_msg_info(self, short_link: str):
+        link_data = await get_link(short_link, self.session)
+        link_params = {"ttl": link_data.ttl, "redirect_link": link_data.redirect_url,
+                       "user_id": link_data.user_id}
+        return link_data.original_link, link_params
+
+    async def generate_link(self):
+        letters_and_numbs = string.ascii_letters + string.digits
+        random_string = ''.join(random.sample(letters_and_numbs, 8))
+        return random_string
+
+    async def make_short_link(self, user_id):
+        generated_link = await self.generate_link()
+        insert_short_link(generated_link, user_id, self.session)
+        link = f'http://{app_config.host}:{app_config.port}/api/v1/welcome/{generated_link}'
+        return link
 
 
 notification_service: NotificationService = NotificationService()

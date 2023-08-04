@@ -25,6 +25,14 @@ class AuthConfig(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRES: datetime.timedelta = Field(..., env='ACCESS_TOKEN_TTL_IN_MINUTES')
     JWT_REFRESH_TOKEN_EXPIRES: datetime.timedelta = Field(..., env='REFRESH_TOKEN_TTL_IN_DAYS')
 
+    @property
+    def url_verify(self):
+        return f'{self.host}/api/v1/user/email_verification'
+
+    @property
+    def url_redirect(self):
+        return f'{self.host}/api/v1/user/profile'
+
 
 class PostgresConfig(BaseSettings):
     host: str = Field(..., env='POSTGRES_HOST')

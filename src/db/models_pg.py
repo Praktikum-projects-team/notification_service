@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Column, String, Boolean, Enum, ForeignKey
@@ -6,6 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 from db.models_data import Channel
+from core.config import auth_config
 
 if TYPE_CHECKING:
     class Base:
@@ -61,3 +63,13 @@ class NotificationSent(Base):
     user_id = Column(UUID(as_uuid=True), primary_key=True)
     event_id = Column(UUID(as_uuid=True), ForeignKey('events.id'))
     delivery_dt = Column(DateTime)
+
+
+class ShortLinks(Base):
+    __tablename__ = 'short_links'
+    short_link = Column(String, primary_key=True)
+    original_link = Column(String, default=auth_config.url_verify)
+    user_id = Column(UUID(as_uuid=True))
+    ttl = Column(DateTime, nullable=False, default=datetime.utcnow)
+    redirect_url = Column(String, default=auth_config.url_redirect)
+
