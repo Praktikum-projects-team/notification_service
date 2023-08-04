@@ -83,8 +83,8 @@ class NotificationService:
 
     async def get_welcome_msg_info(self, short_link: str):
         link_data = await get_link(short_link, self.session)
-        link_params = {"ttl": link_data.ttl, "redirect_link": link_data.redirect_url,
-                       "user_id": link_data.user_id}
+        link_params = {"ttl": str(link_data.ttl), "redirect_link": link_data.redirect_url,
+                       "user_id": str(link_data.user_id)}
         return link_data.original_link, link_params
 
     async def generate_link(self):
@@ -94,14 +94,11 @@ class NotificationService:
 
     async def make_short_link(self, user_id):
         generated_link = await self.generate_link()
-        insert_short_link(generated_link, user_id, self.session)
+        await insert_short_link(generated_link, user_id, self.session)
         link = f'http://{app_config.host}:{app_config.port}/api/v1/welcome/{generated_link}'
         return link
 
 
-notification_service: NotificationService = NotificationService()
-
-
 @lru_cache()
-def get_notification_service() -> NotificationService:
-    return notification_service
+def get_notification_service(session: AsyncSession = Depends(get_db)) -> NotificationService:
+    return NotificationService(session=session)

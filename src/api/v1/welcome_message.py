@@ -16,8 +16,9 @@ auth_api = AuthApi()
 async def redirect_with_short_link(short_link: str,
                                    notification_service: NotificationService = Depends(get_notification_service)):
     link, params = await notification_service.get_welcome_msg_info(short_link)
-    resp = requests.post(link, json=params)
-    return resp.json()
+    headers = {'X-Request-Id': '1'}
+    resp = requests.post(link, json=params, headers=headers)
+    return resp.status_code
 
 
 @router.get(

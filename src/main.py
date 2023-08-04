@@ -12,7 +12,7 @@ from api.v1 import notification
 from api.v1 import welcome_message
 from core.logger import LOGGING
 from core.config import app_config
-from services.notification import notification_service, RabbitPublisher
+from services.notification import RabbitPublisher, get_notification_service
 
 from dotenv import load_dotenv
 
@@ -23,6 +23,7 @@ load_dotenv()
 async def lifespan(app: FastAPI):
     rabbit_publisher = RabbitPublisher()
     await rabbit_publisher.connect()
+    notification_service = get_notification_service()
     notification_service.publisher = rabbit_publisher
     yield
     await rabbit_publisher.close_connection()
