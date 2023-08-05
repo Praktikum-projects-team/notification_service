@@ -53,25 +53,23 @@ class NotificationService:
         self.session = session
 
     async def put_one(self, event_data: ServiceNotificationRequest):
-        if await self.check_event(event_data.event_id):
-            await self.publisher.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
-        else:
+        if not await self.check_event(event_data.event_id):
             raise EventNotFound('Event not found')
+        await self.publisher.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
 
     async def put_many(self, event_data: ServiceNotificationRequest, users: list):
+        if not await self.check_event(event_data.event_id):
+            raise EventNotFound('Event not found')
+
         for user in users:
-            if await self.check_event(event_data.event_id):
-                event_data.user_id = user
-                await self.publisher.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
-            else:
-                raise EventNotFound('Event not found')
+            event_data.user_id = user
+            await self.publisher.put_event_to_queue(event_data, rm_config.rm_instant_queue_name)
 
     async def check_event(self, event_id: str):
         event = await get_event(self.session, event_id)
         if event:
             return True
-        else:
-            return False
+        return False
 
     async def publish_event(self, event_data: ServiceNotificationRequest):
         receiver = event_data.user_id
@@ -79,9 +77,8 @@ class NotificationService:
             if isinstance(receiver, list):
                 await self.put_many(event_data, receiver)
                 return {'msg': 'Notifications for each user from the list have been added to the instant queue'}
-            else:
-                await self.put_one(event_data)
-                return {'msg': 'Notification for user has been added to the instant queue'}
+            await self.put_one(event_data)
+            return {'msg': 'Notification for user has been added to the instant queue'}
         except EventNotFound:
             raise
 

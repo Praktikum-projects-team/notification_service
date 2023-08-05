@@ -1,5 +1,5 @@
+import httpx
 from fastapi import APIRouter, Depends
-import requests
 
 from services.auth import AuthApi
 from api.v1.auth.auth_bearer import BaseJWTBearer
@@ -17,7 +17,8 @@ async def redirect_with_short_link(short_link: str,
                                    notification_service: NotificationService = Depends(get_notification_service)):
     link, params = await notification_service.get_welcome_msg_info(short_link)
     headers = {'X-Request-Id': '1'}
-    resp = requests.post(link, json=params, headers=headers)
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(link, json=params, headers=headers)
     return resp.status_code
 
 
