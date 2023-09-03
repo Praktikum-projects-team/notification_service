@@ -161,3 +161,4 @@ cython_debug/
 /envs/auth/.env
 /rabbitmq/
 /tests/.env
+/cron_scheduler/.env

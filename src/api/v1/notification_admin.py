@@ -1,5 +1,6 @@
 import logging
 from http import HTTPStatus
+from typing import Union
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -7,6 +8,7 @@ from api.v1.auth.auth_bearer import BaseJWTBearer
 from api.v1.models.notification_admin import (
     AllNotificationAdminResp,
     AddNotificationAdmin,
+    NotificationAdminEventIdResp,
     NotificationAdminMessageResp,
     NotificationAdminResp,
     UpdateNotificationAdmin,
@@ -20,21 +22,21 @@ auth_api = AuthApi()
 
 @router.post(
     '/',
-    response_model=NotificationAdminMessageResp,
+    response_model=NotificationAdminEventIdResp,
     description='Добавление уведомления',
     dependencies=[Depends(BaseJWTBearer())]
 )
 async def add_notification_admin(
         data: AddNotificationAdmin,
         notification_admin_service: NotificationAdminService = Depends(get_notification_admin_service)
-) -> NotificationAdminMessageResp:
+) -> Union[NotificationAdminMessageResp, NotificationAdminEventIdResp]:
     try:
-        await notification_admin_service.post_notification(data)
+        event_id = await notification_admin_service.post_notification(data)
     except Exception as e:
         logging.error(e)
         return NotificationAdminMessageResp(msg="Adding notification is failed")
 
-    return NotificationAdminMessageResp(msg="Notification added")
+    return NotificationAdminEventIdResp(event_id=str(event_id), msg="Notification added")
 
 
 @router.get(
