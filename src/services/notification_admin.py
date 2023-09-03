@@ -1,5 +1,6 @@
 import logging
 from functools import lru_cache
+from typing import Union
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,13 +21,15 @@ class NotificationAdminService:
     def __init__(self, session: AsyncSession = Depends(get_db)):
         self.session = session
 
-    async def post_notification(self, data):
+    async def post_notification(self, data) -> Union[str, None]:
         try:
             event_data = EventCreate(description=data.description, is_unsubscribeable=data.is_unsubscribeable)
             event_id = await insert_event(event_data, self.session)
 
             event_scheduled_data = EventScheduledCreate(event_id=event_id, cron_string=data.cron_string)
             await insert_event_scheduled(event_scheduled_data, self.session)
+
+            return event_id
 
         except Exception as e:
             logging.error(e)

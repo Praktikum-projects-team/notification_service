@@ -15,6 +15,11 @@ class NotificationAdminMessageResp(OrjsonBaseModel):
     msg: str
 
 
+class NotificationAdminEventIdResp(OrjsonBaseModel):
+    event_id: str
+    msg: str
+
+
 class NotificationAdminResp(OrjsonBaseModel):
     id: UUID
     description: str
