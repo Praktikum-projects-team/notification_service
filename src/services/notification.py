@@ -4,16 +4,14 @@ from functools import lru_cache
 from uuid import UUID
 
 import orjson
-from aio_pika import Message, connect
+from aio_pika import ExchangeType, Message, connect
 from aio_pika.abc import AbstractChannel, AbstractConnection, AbstractExchange
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.v1.models.notification import ServiceNotificationRequest
-from core.config import app_config
-from core.config import rm_config
-from db.postgres import get_db, get_event
-from db.postgres import get_link, insert_short_link
+from core.config import app_config, rm_config
+from db.postgres import get_db, get_event, get_link, insert_short_link
 
 
 class EventNotFound(Exception):
@@ -29,7 +27,11 @@ class RabbitPublisher:
     async def connect(self):
         self.connection = await connect(rm_config.rabbit_connection)
         self.channel = await self.connection.channel()
-        self.exchange = await self.channel.declare_exchange(rm_config.rm_exchange)
+        self.exchange = await self.channel.declare_exchange(
+            name=rm_config.rm_exchange,
+            type=ExchangeType.FANOUT,
+            durable=True,
+        )
 
     async def put_event_to_queue(self, event_data: ServiceNotificationRequest, queue_name: str):
         msg = Message(body=orjson.dumps(event_data.dict()), delivery_mode=rm_config.rm_delivery_mode)
